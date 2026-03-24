@@ -1,1 +1,393 @@
-# TANET
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>RANK X - Inscrições Olímpicas</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap');
+
+        :root {
+            --neon: #00ff88;
+            --neon-blue: #00d4ff;
+            --neon-red: #ff3366;
+            --bg: #050505;
+            --glass: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: var(--bg); color: white; overflow-x: hidden; padding: 15px; }
+
+        #app { width: 100%; max-width: 500px; margin: 0 auto; }
+
+        .glass {
+            background: var(--glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border); border-radius: 20px; padding: 25px;
+            margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h1 { text-align: center; font-weight: 900; font-size: 28px; letter-spacing: -1px; margin-bottom: 5px; }
+        h1 span { background: linear-gradient(90deg, var(--neon), var(--neon-blue)); -webkit-background-clip: text; color: transparent; }
+        .subtitle { text-align: center; font-size: 11px; color: #888; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 2px; }
+
+        label { font-size: 11px; color: var(--neon-blue); font-weight: bold; margin-bottom: 8px; display: block; margin-left: 5px; letter-spacing: 1px; }
+        
+        input[type="text"], select {
+            width: 100%; padding: 16px; margin-bottom: 20px; border-radius: 12px;
+            border: 1px solid #222; background: #0a0a0a; color: white; font-size: 14px;
+            transition: 0.3s;
+        }
+        input[type="text"]:focus, select:focus { border-color: var(--neon); outline: none; box-shadow: 0 0 15px rgba(0,255,136,0.1); }
+
+        .btn-glow {
+            width: 100%; padding: 18px; border-radius: 12px; border: none;
+            background: linear-gradient(90deg, #00ff88, #00d4ff); color: #000;
+            font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; margin-top: 10px;
+            text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 5px 15px rgba(0,255,136,0.2);
+        }
+        .btn-glow:active { transform: scale(0.97); }
+
+        /* GRID DE OLIMPÍADAS */
+        .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+        .check-item { 
+            background: #0f0f0f; padding: 14px; border-radius: 12px; 
+            border: 1px solid #222; display: flex; align-items: center; 
+            gap: 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: 0.2s;
+        }
+        .check-item input { width: auto; margin: 0; transform: scale(1.3); accent-color: var(--neon); cursor: pointer; }
+        .check-item:has(input:checked) { border-color: var(--neon); background: rgba(0,255,136,0.08); color: var(--neon); }
+
+        /* LISTA DE ALUNOS */
+        .search-bar { width: 100%; margin-bottom: 15px; position: relative; }
+        .search-bar input { margin-bottom: 0; padding-left: 40px; background: #111; border-color: #333; }
+        .search-bar::before { content: '🔍'; position: absolute; left: 15px; top: 15px; font-size: 14px; }
+
+        .student-card {
+            background: #0f0f0f; border: 1px solid #222;
+            padding: 18px; border-radius: 16px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .student-card:hover { border-color: #444; transform: translateY(-2px); }
+        .student-info { flex: 1; }
+        .student-info b { display: block; font-size: 15px; color: #fff; margin-bottom: 3px; }
+        .student-info span { font-size: 11px; color: #888; display: block; }
+        .student-info .tags { color: var(--neon-blue); font-size: 10px; margin-top: 8px; font-weight: 600; }
+        
+        .card-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+        .pts-badge { background: rgba(0,255,136,0.1); color: var(--neon); padding: 4px 10px; border-radius: 8px; font-weight: 900; font-size: 11px; border: 1px solid rgba(0,255,136,0.2); }
+        
+        .btn-icon { background: #1a1a1a; border: 1px solid #333; color: white; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .btn-icon:hover { background: #333; }
+        .btn-edit { color: var(--neon-blue); }
+        .btn-del { color: var(--neon-red); }
+
+        /* NOTIFICAÇÃO */
+        #toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(10,10,10,0.9); backdrop-filter: blur(10px); color: white;
+            border-left: 4px solid var(--neon); padding: 15px 25px; border-radius: 12px;
+            font-weight: bold; font-size: 12px; display: none; z-index: 10000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideDown 0.3s ease forwards;
+        }
+        @keyframes slideDown { from { top: -20px; opacity: 0; } to { top: 20px; opacity: 1; } }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Sucesso!</div>
+
+    <div id="app">
+        <div class="glass" id="header-box">
+            <h1>OLIMPI<span>BOX</span></h1>
+            <p class="subtitle">Gestão de Alunos - Rank X</p>
+            <button onclick="prepararNovo()" class="btn-glow">+ NOVO ALUNO</button>
+        </div>
+
+        <section id="form-aluno" class="glass hidden">
+            <h2 id="form-title" style="font-size: 18px; margin-bottom: 20px; color: var(--neon);">Novo Aluno</h2>
+            
+            <label>NOME COMPLETO</label>
+            <input type="text" id="aluno-nome" placeholder="Ex: João Silva">
+
+            <label>TURMA VINCULADA (RANK X)</label>
+            <select id="aluno-turma">
+                <option value="">Selecione a Turma...</option>
+                </select>
+
+            <label>SÉRIE / ANO</label>
+            <input type="text" id="aluno-serie" placeholder="Ex: 3º Ano A">
+
+            <label>PROVAS MARCADAS</label>
+            <div class="checkbox-grid">
+                <label class="check-item"><input type="checkbox" value="OBMEP" class="chk-oli"> OBMEP</label>
+                <label class="check-item"><input type="checkbox" value="Matemática" class="chk-oli"> Matemática</label>
+                <label class="check-item"><input type="checkbox" value="Física" class="chk-oli"> Física</label>
+                <label class="check-item"><input type="checkbox" value="Química" class="chk-oli"> Química</label>
+                <label class="check-item"><input type="checkbox" value="Biologia" class="chk-oli"> Biologia</label>
+                <label class="check-item"><input type="checkbox" value="História" class="chk-oli"> História</label>
+                <label class="check-item"><input type="checkbox" value="Astronomia" class="chk-oli"> OBA</label>
+                <label class="check-item"><input type="checkbox" value="Português" class="chk-oli"> Português</label>
+            </div>
+
+            <button onclick="salvarAluno()" id="btn-salvar" class="btn-glow">SALVAR INSCRIÇÃO</button>
+            <button onclick="fecharForm()" style="width: 100%; background: none; border: none; color: #666; margin-top: 15px; font-size: 12px; font-weight: bold; cursor: pointer;">CANCELAR</button>
+        </section>
+
+        <div id="lista-view">
+            <div class="search-bar">
+                <input type="text" id="busca-aluno" placeholder="Pesquisar nome ou turma..." onkeyup="filtrarLista()">
+            </div>
+            <h3 style="margin: 5px 5px 15px; font-size: 11px; color: #666; font-weight: bold;">ALUNOS CADASTRADOS</h3>
+            
+            <div id="lista-alunos">
+                <p style="text-align:center; font-size:12px; color:#555; margin-top:20px;">Carregando banco de dados...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <script>
+        // MESMO FIREBASE DO RANK X
+        const firebaseConfig = { databaseURL: "https://gincanaescola-d4f8c-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Variáveis globais para controlar a Edição
+        let editandoId = null;
+        let oldTurma = null;
+        let oldPontos = 0;
+        let todosAlunos = {};
+
+        function notify(msg, type = "success") {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.borderLeftColor = type === "error" ? "var(--neon-red)" : "var(--neon)";
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        // CARREGAR TURMAS DO RANK X
+        function carregarTurmasNoSelect() {
+            db.ref('ranking').once('value', snap => {
+                const select = document.getElementById('aluno-turma');
+                const turmas = snap.val();
+                
+                // Salva a seleção atual (se estiver editando)
+                const selecaoAtual = select.value;
+                select.innerHTML = '<option value="">Selecione a Turma...</option>';
+                
+                if(turmas) {
+                    Object.keys(turmas).forEach(t => {
+                        select.innerHTML += `<option value="${t}">${t}</option>`;
+                    });
+                }
+                // Restaura a seleção se for edição
+                if(selecaoAtual) select.value = selecaoAtual;
+            });
+        }
+
+        function prepararNovo() {
+            editandoId = null;
+            oldTurma = null;
+            oldPontos = 0;
+            
+            document.getElementById('form-title').innerText = "Novo Aluno";
+            document.getElementById('btn-salvar').innerText = "SALVAR INSCRIÇÃO";
+            limparCampos();
+            mostrarForm();
+        }
+
+        function prepararEdicao(id) {
+            const aluno = todosAlunos[id];
+            if(!aluno) return;
+
+            editandoId = id;
+            oldTurma = aluno.turma;
+            oldPontos = aluno.total_pontos || 0;
+
+            document.getElementById('form-title').innerText = "Editar Aluno";
+            document.getElementById('btn-salvar').innerText = "ATUALIZAR DADOS";
+            
+            document.getElementById('aluno-nome').value = aluno.nome;
+            document.getElementById('aluno-turma').value = aluno.turma;
+            document.getElementById('aluno-serie').value = aluno.serie;
+            
+            // Marca os checkboxes
+            document.querySelectorAll('.chk-oli').forEach(cb => {
+                cb.checked = aluno.olimpiadas.includes(cb.value);
+            });
+
+            mostrarForm();
+        }
+
+        function mostrarForm() {
+            document.getElementById('form-aluno').classList.remove('hidden');
+            document.getElementById('header-box').classList.add('hidden');
+            document.getElementById('lista-view').classList.add('hidden');
+            carregarTurmasNoSelect();
+        }
+
+        function fecharForm() {
+            document.getElementById('form-aluno').classList.add('hidden');
+            document.getElementById('header-box').classList.remove('hidden');
+            document.getElementById('lista-view').classList.remove('hidden');
+            limparCampos();
+        }
+
+        function limparCampos() {
+            document.getElementById('aluno-nome').value = "";
+            document.getElementById('aluno-serie').value = "";
+            document.getElementById('aluno-turma').value = "";
+            document.querySelectorAll('.chk-oli').forEach(cb => cb.checked = false);
+        }
+
+        // FUNÇÃO CENTRAL PARA MEXER NOS PONTOS DO RANK X SEM QUEBRAR NADA
+        async function atualizarPontosTurma(nomeTurma, deltaPontos) {
+            if(!nomeTurma || deltaPontos === 0) return;
+
+            const turmaRef = db.ref('ranking/' + nomeTurma);
+            const snap = await turmaRef.once('value');
+            const dadosTurma = snap.val();
+            
+            if(dadosTurma) {
+                const novosPtsExtras = (dadosTurma.pts_extra || 0) + deltaPontos;
+                // Recalcula o total exato do Rank X
+                const novoTotal = (dadosTurma.seguidores || 0) * 1 + 
+                                  (dadosTurma.videos || 0) * 100 + 
+                                  novosPtsExtras;
+
+                await turmaRef.update({
+                    pts_extra: novosPtsExtras,
+                    pontos: novoTotal
+                });
+            }
+        }
+
+        async function salvarAluno() {
+            const nome = document.getElementById('aluno-nome').value.trim();
+            const novaTurma = document.getElementById('aluno-turma').value;
+            const serie = document.getElementById('aluno-serie').value.trim();
+            
+            const selecionadas = [];
+            document.querySelectorAll('.chk-oli:checked').forEach(cb => selecionadas.push(cb.value));
+
+            if(!nome || !novaTurma || selecionadas.length === 0) {
+                return notify("Preencha nome, turma e ao menos 1 prova!", "error");
+            }
+
+            // Cada prova vale 50 pontos
+            const novosPontosTotais = selecionadas.length * 50;
+            const dadosAluno = {
+                nome: nome,
+                turma: novaTurma,
+                serie: serie,
+                olimpiadas: selecionadas,
+                total_pontos: novosPontosTotais,
+                data: Date.now()
+            };
+
+            if(editandoId) {
+                // MODO EDIÇÃO
+                await db.ref('inscricoes_olimpiadas/' + editandoId).update(dadosAluno);
+                
+                // Lógica inteligente de distribuição de pontos:
+                if(oldTurma === novaTurma) {
+                    // Mesma turma, só calcula a diferença (ex: tinha 2 provas, marcou 3 -> +50 pts)
+                    const diferenca = novosPontosTotais - oldPontos;
+                    await atualizarPontosTurma(novaTurma, diferenca);
+                } else {
+                    // Mudou de turma: tira tudo da turma antiga e dá pra turma nova
+                    await atualizarPontosTurma(oldTurma, -oldPontos);
+                    await atualizarPontosTurma(novaTurma, novosPontosTotais);
+                }
+                notify("Perfil atualizado com sucesso!");
+            } else {
+                // MODO CRIAÇÃO
+                await db.ref('inscricoes_olimpiadas').push(dadosAluno);
+                await atualizarPontosTurma(novaTurma, novosPontosTotais);
+                notify(`Aluno criado! +${novosPontosTotais} pts para ${novaTurma}`);
+            }
+
+            fecharForm();
+        }
+
+        async function excluirAluno(id) {
+            if(!confirm("Tem certeza que deseja apagar este aluno? Os pontos serão descontados da turma.")) return;
+
+            const aluno = todosAlunos[id];
+            if(aluno) {
+                // Remove os pontos da turma correspondente
+                await atualizarPontosTurma(aluno.turma, -aluno.total_pontos);
+                // Deleta do banco
+                await db.ref('inscricoes_olimpiadas/' + id).remove();
+                notify("Aluno excluído e pontos removidos.");
+            }
+        }
+
+        // LÊ OS DADOS EM TEMPO REAL E GUARDA GLOBALMENTE
+        db.ref('inscricoes_olimpiadas').on('value', snap => {
+            todosAlunos = snap.val() || {};
+            renderizarLista();
+        });
+
+        // RENDERIZA E FILTRA A LISTA
+        function renderizarLista(filtro = "") {
+            const container = document.getElementById('lista-alunos');
+            container.innerHTML = "";
+            
+            const keys = Object.keys(todosAlunos).reverse(); // Mais novos primeiro
+            let qtd = 0;
+
+            keys.forEach(id => {
+                const a = todosAlunos[id];
+                const termo = filtro.toLowerCase();
+                
+                // Lógica de pesquisa: busca no nome ou no nome da turma
+                if(termo && !a.nome.toLowerCase().includes(termo) && !a.turma.toLowerCase().includes(termo)) {
+                    return; // Ignora se não bater com a pesquisa
+                }
+
+                qtd++;
+                container.innerHTML += `
+                    <div class="student-card">
+                        <div class="student-info">
+                            <b>${a.nome}</b>
+                            <span>🎓 Turma: ${a.turma} • ${a.serie}</span>
+                            <div class="tags">📘 ${a.olimpiadas.join(' • ')}</div>
+                        </div>
+                        
+                        <div class="card-actions">
+                            <div class="pts-badge">+${a.total_pontos}</div>
+                            <div style="display:flex; gap:5px; margin-top:5px;">
+                                <button class="btn-icon btn-edit" onclick="prepararEdicao('${id}')">✏️</button>
+                                <button class="btn-icon btn-del" onclick="excluirAluno('${id}')">🗑️</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if(qtd === 0) {
+                container.innerHTML = `<p style="text-align:center; font-size:12px; color:#444; margin-top:20px;">Nenhum aluno encontrado.</p>`;
+            }
+        }
+
+        function filtrarLista() {
+            const termo = document.getElementById('busca-aluno').value;
+            renderizarLista(termo);
+        }
+
+        // Carrega turmas na inicialização para deixar o sistema rápido
+        carregarTurmasNoSelect();
+
+    </script>
+</body>
+</html>
